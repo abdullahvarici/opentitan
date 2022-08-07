@@ -9,9 +9,9 @@ filesets:
   files_otbn:
     depend:
       - lowrisc:ip:otbn
-      - lowrisc:dv:otbn_model
-      - lowrisc:ip:otbn_tracer
-      - lowrisc:ip:keymgr_pkg
+#      - lowrisc:dv:otbn_model
+#      - lowrisc:ip:otbn_tracer
+#      - lowrisc:ip:keymgr_pkg
   files_verilator:
     depend:
       - lowrisc:dv:otbn_memutil
