@@ -1,6 +1,8 @@
 # We start with
-# - secret X in x6 and x7 (A and B share)
-# - secret Y in x8 and x9 (A and B share)
+# - secret X in w6 and w7 (A and B share) - 0011 = 1010 ^ 1001
+# - secret Y in w8 and w9 (A and B share) - 0101 = 1110 ^ 1011
+# - fresh mask in w10 - ? 
+# - expected result w11 & w12 == 0011 & 0101 = 0001 
 #
 # We end up with
 # - Secret Q in x11 and x12 (A and B share)
@@ -9,31 +11,41 @@
 #
 .section .text.start
 
-# Load randomness from address 0 into x10
-#li x30, 0x0
-#lw x10, (x30)
+# Set registers to compute and expected result
+bn.xor w6, w6, w6
+bn.addi w6, w6, 10
+bn.xor w7, w7, w7
+bn.addi w7, w7, 9
+bn.xor w8, w8, w8
+bn.addi w8, w8, 14
+bn.xor w9, w9, w9
+bn.addi w9, w9, 11
 
 # Compute inner-domain terms.
-and x1, x6, x8
-and x16, x17, x18 # dummy op to flush ALU
-and x2, x7, x9
+bn.and w1, w6, w8
+bn.and w2, w7, w9
 
 # Compute cross-domain terms.
-and x16, x17, x18 # dummy op to flush ALU
-and x3, x6, x9
-and x16, x17, x18 # dummy op to flush ALU
-and x4, x7, x8
+bn.and w3, w6, w9
+bn.and w4, w7, w8
 
 # Resharing of cross-domain terms.
-and x16, x17, x18 # dummy op to flush ALU
-xor x14, x4, x10
-and x16, x17, x18 # dummy op to flush ALU
-xor x13, x3, x10
+bn.xor w14, w4, w10
+bn.xor w13, w3, w10
 
 # Integration
-and x16, x17, x18 # dummy op to flush ALU
-xor x11, x1, x13
-and x16, x17, x18 # dummy op to flush ALU
-xor x12, x2, x14
+bn.xor w11, w1, w13
+bn.xor w12, w2, w14
+
+# Compute result and compare it with the expected result
+# If the result is different than the expected one,
+# otbn cannot exit from the infinite loop
+bn.xor w15, w11, w12
+li x31, 15
+bn.sid x31, 0(x0)
+lw x31, 0(x0)
+li x30, 1
+inf_loop:
+bne x31, x30, inf_loop
 
 ecall

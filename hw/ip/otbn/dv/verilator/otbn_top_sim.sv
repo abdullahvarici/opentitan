@@ -22,7 +22,7 @@ module otbn_top_sim (
   localparam logic [127:0] TestScrambleKey   = 128'h48ecf6c738f0f108a5b08620695ffd4d;
   localparam logic [63:0]  TestScrambleNonce = 64'hf88c2578fa4cd123;
 
-  // logic      otbn_done; //, otbn_done_r;//, otbn_done_rr;
+  logic      otbn_done; //, otbn_done_r;//, otbn_done_rr;
   logic      otbn_start;
 
   // Intialise otbn_start_done to 1 so that we only signal otbn_start after we have seen a reset. If
@@ -66,7 +66,7 @@ module otbn_top_sim (
     .rst_ni                      ( IO_RST_N                   ),
 
     .start_i                     ( otbn_start                 ),
-    .done_o                      (                            ),
+    .done_o                      ( otbn_done                  ),
     .locking_o                   (                            ),
     .secure_wipe_running_o       ( secure_wipe_running        ),
 
@@ -221,25 +221,25 @@ module otbn_top_sim (
     .cfg_i        ( '0                      )
   );
 
-  // // When OTBN is done let a few more cycles run then finish simulation
-  // logic [1:0] finish_counter;
+  // When OTBN is done let a few more cycles run then finish simulation
+  logic [1:0] finish_counter;
 
-  // always @(posedge IO_CLK or negedge IO_RST_N) begin
-  //   if (!IO_RST_N) begin
-  //     finish_counter <= 2'd0;
-  //   end else begin
-  //     if (otbn_done_r) begin
-  //       finish_counter <= 2'd1;
-  //     end
+  always @(posedge IO_CLK or negedge IO_RST_N) begin
+    if (!IO_RST_N) begin
+      finish_counter <= 2'd0;
+    end else begin
+      if (otbn_done) begin
+        finish_counter <= 2'd1;
+      end
 
-  //     if (finish_counter != 0) begin
-  //       finish_counter <= finish_counter + 2'd1;
-  //     end
+      if (finish_counter != 0) begin
+        finish_counter <= finish_counter + 2'd1;
+      end
 
-  //     if (finish_counter == 2'd3) begin
-  //       $finish;
-  //     end
-  //   end
-  // end
+      if (finish_counter == 2'd3) begin
+        $finish;
+      end
+    end
+  end
 
 endmodule
