@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-module otbn_top (
+module otbn_top_coco (
   input clk_sys,
   input rst_sys_n
 );
@@ -23,8 +23,8 @@ module otbn_top (
 
   // Math function: Number of bits needed to address |value| items.
   // vbits function in prim_util_pkg.sv
-  function automatic _clog2;
-    input value;
+  function automatic [31:0] _clog2;
+    input [31:0] value;
     begin : fclog2
       integer result;
       value = value - 1;
@@ -80,6 +80,7 @@ module otbn_top (
 
   localparam MuBi4False = 4'h9;
 
+  /* verilator lint_off PINCONNECTEMPTY */
   otbn_core u_otbn_core (
     .clk_i                       ( clk_sys                    ),
     .rst_ni                      ( rst_sys_n                  ),
