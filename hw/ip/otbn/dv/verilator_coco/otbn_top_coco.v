@@ -2,9 +2,14 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-module otbn_top_coco (
+module otbn_top_coco #(
+	parameter ImemDataWidth = 39
+) (
   input clk_sys,
-  input rst_sys_n
+  input rst_sys_n,
+  input imem_we_i,
+  input [ImemDataWidth-1:0] imem_wdata_i,
+  input [ImemDataWidth-1:0] imem_wmask_i
 );
   // Size of the instruction memory, in bytes
   // parameter int ImemSizeByte = otbn_reg_pkg::OTBN_IMEM_SIZE;
@@ -15,7 +20,7 @@ module otbn_top_coco (
   // Data path width for BN (wide) instructions, in bits.
   localparam WLEN = 256;
   // Instruction data width
-  localparam ImemDataWidth = 39;
+  // localparam ImemDataWidth = 39;
   // Sideload key data width
   localparam SideloadKeyWidth = 384;
   // "Extended" WLEN: the size of the datapath with added integrity bits
@@ -212,10 +217,10 @@ module otbn_top_coco (
     .clk_i(clk_sys),
     .rst_ni(rst_sys_n),
     .req_i(imem_req),
-    .we_i(1'b0),
+    .we_i(imem_we_i),
     .addr_i(imem_index),
-    .wdata_i({ImemDataWidth{1'b0}}),
-    .wmask_i({ImemDataWidth{1'b0}}),
+    .wdata_i(imem_wdata_i),
+    .wmask_i(imem_wmask_i),
     .rvalid_o(imem_rvalid),
     .rdata_o(imem_rdata)
   );
