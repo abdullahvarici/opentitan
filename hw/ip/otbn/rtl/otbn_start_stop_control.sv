@@ -26,39 +26,39 @@ module otbn_start_stop_control
   import otbn_pkg::*;
   import prim_mubi_pkg::*;
 (
-  input  logic clk_i,
-  input  logic rst_ni,
+    input logic clk_i,
+    input logic rst_ni,
 
-  input  logic   start_i,
-  input  mubi4_t escalate_en_i,
-  input  mubi4_t rma_req_i,
-  output mubi4_t rma_ack_o,
+    input  logic   start_i,
+    input  mubi4_t escalate_en_i,
+    input  mubi4_t rma_req_i,
+    output mubi4_t rma_ack_o,
 
-  output logic controller_start_o,
+    output logic controller_start_o,
 
-  output logic urnd_reseed_req_o,
-  input  logic urnd_reseed_ack_i,
-  output logic urnd_reseed_err_o,
-  output logic urnd_advance_o,
+    output logic urnd_reseed_req_o,
+    input  logic urnd_reseed_ack_i,
+    output logic urnd_reseed_err_o,
+    output logic urnd_advance_o,
 
-  input   logic secure_wipe_req_i,
-  output  logic secure_wipe_ack_o,
-  output  logic secure_wipe_running_o,
-  output  logic done_o,
+    input  logic secure_wipe_req_i,
+    output logic secure_wipe_ack_o,
+    output logic secure_wipe_running_o,
+    output logic done_o,
 
-  output logic       sec_wipe_wdr_o,
-  output logic       sec_wipe_wdr_urnd_o,
-  output logic       sec_wipe_base_o,
-  output logic       sec_wipe_base_urnd_o,
-  output logic [4:0] sec_wipe_addr_o,
+    output logic       sec_wipe_wdr_o,
+    output logic       sec_wipe_wdr_urnd_o,
+    output logic       sec_wipe_base_o,
+    output logic       sec_wipe_base_urnd_o,
+    output logic [4:0] sec_wipe_addr_o,
 
-  output logic sec_wipe_acc_urnd_o,
-  output logic sec_wipe_mod_urnd_o,
-  output logic sec_wipe_zero_o,
+    output logic sec_wipe_acc_urnd_o,
+    output logic sec_wipe_mod_urnd_o,
+    output logic sec_wipe_zero_o,
 
-  output logic ispr_init_o,
-  output logic state_reset_o,
-  output logic fatal_error_o
+    output logic ispr_init_o,
+    output logic state_reset_o,
+    output logic fatal_error_o
 );
 
   import otbn_pkg::*;
@@ -106,21 +106,21 @@ module otbn_start_stop_control
   end
 
   prim_mubi4_sender #(
-    .AsyncOn(1'b1),
-    .EnSecBuf(1'b1),
-    .ResetValue(prim_mubi_pkg::MuBi4False)
+      .AsyncOn(1'b1),
+      .EnSecBuf(1'b1),
+      .ResetValue(prim_mubi_pkg::MuBi4False)
   ) u_prim_mubi4_sender_rma_ack (
-    .clk_i,
-    .rst_ni,
-    .mubi_i(rma_ack_d),
-    .mubi_o(rma_ack_q)
+      .clk_i,
+      .rst_ni,
+      .mubi_i(rma_ack_d),
+      .mubi_o(rma_ack_q)
   );
 
   logic allow_secure_wipe, expect_secure_wipe;
 
   // SEC_CM: START_STOP_CTRL.FSM.SPARSE
-  `PRIM_FLOP_SPARSE_FSM(u_state_regs, state_d, state_q,
-      otbn_start_stop_state_e, OtbnStartStopStateInitial)
+  `PRIM_FLOP_SPARSE_FSM(u_state_regs, state_d, state_q, otbn_start_stop_state_e,
+                        OtbnStartStopStateInitial)
 
   always_comb begin
     urnd_reseed_req_o         = 1'b0;
@@ -149,22 +149,41 @@ module otbn_start_stop_control
     unique case (state_q)
       OtbnStartStopStateInitial: begin
         secure_wipe_running_o = 1'b1;
-        urnd_reseed_req_o     = 1'b1;
-        if (urnd_reseed_ack_i) begin
-          urnd_advance_o = 1'b1;
-          state_d = OtbnStartStopSecureWipeWdrUrnd;
-        end
+        // urnd_reseed_req_o     = 1'b1;
+        // if (urnd_reseed_ack_i) begin
+        //   urnd_advance_o = 1'b1;
+        //   state_d = OtbnStartStopSecureWipeWdrUrnd;
+        // end
+        state_d = OtbnStartStopSecureWipeComplete;
+      end
+      OtbnStartStopSecureWipeComplete: begin
+        secure_wipe_running_o = 1'b1;
+        secure_wipe_ack_o = 1'b1;
+        state_d = OtbnStartStopStateHalt;
       end
       OtbnStartStopStateHalt: begin
-        if (stop && !rma_request) begin
-          state_d = OtbnStartStopStateLocked;
-        end else if (start_i || rma_request) begin
-          urnd_reseed_req_o = 1'b1;
-          ispr_init_o       = 1'b1;
-          state_reset_o     = 1'b1;
-          state_d           = OtbnStartStopStateUrndRefresh;
+        // if (stop && !rma_request) begin
+        //   state_d = OtbnStartStopStateLocked;
+        // end else if (start_i || rma_request) begin
+        //   urnd_reseed_req_o = 1'b1;
+        //   ispr_init_o       = 1'b1;
+        //   state_reset_o     = 1'b1;
+        //   state_d           = OtbnStartStopStateUrndRefresh;
+        // end
+        if (start_i) begin
+          state_d = OtbnStartStopStateRunning;
         end
       end
+      OtbnStartStopStateRunning: begin
+        // urnd_advance_o    = 1'b1;
+        allow_secure_wipe = 1'b1;
+
+        if (stop) begin
+          // state_d = OtbnStartStopSecureWipeWdrUrnd;
+          state_d = OtbnStartStopStateInitial;
+        end
+      end
+
       OtbnStartStopStateUrndRefresh: begin
         urnd_reseed_req_o = 1'b1;
         if (stop) begin
@@ -201,17 +220,9 @@ module otbn_start_stop_control
           end
         end
       end
-      OtbnStartStopStateRunning: begin
-        urnd_advance_o    = 1'b1;
-        allow_secure_wipe = 1'b1;
-
-        if (stop) begin
-          state_d = OtbnStartStopSecureWipeWdrUrnd;
-        end
-      end
       // SEC_CM: DATA_REG_SW.SEC_WIPE
       // Writing random numbers to the wide data registers.
-       OtbnStartStopSecureWipeWdrUrnd: begin
+      OtbnStartStopSecureWipeWdrUrnd: begin
         urnd_advance_o        = 1'b1;
         addr_cnt_inc          = 1'b1;
         sec_wipe_wdr_o        = 1'b1;
@@ -227,18 +238,18 @@ module otbn_start_stop_control
         // thus with the same random value.
         if (addr_cnt_q == 6'b100000) begin
           // Reset `addr_cnt` on the transition out of this state.
-          addr_cnt_inc = 1'b0;
+          addr_cnt_inc        = 1'b0;
           // The following two signals are flopped once before they reach the FSM, so clear them one
           // cycle early here.
           sec_wipe_wdr_o      = 1'b0;
           sec_wipe_wdr_urnd_o = 1'b0;
-          state_d = OtbnStartStopSecureWipeAccModBaseUrnd;
+          state_d             = OtbnStartStopSecureWipeAccModBaseUrnd;
         end
       end
       // Writing random numbers to the accumulator, modulus and the base registers.
       // addr_cnt_q wraps around to 0 when first moving to this state, and we need to
       // supress writes to the zero register and the call stack.
-       OtbnStartStopSecureWipeAccModBaseUrnd: begin
+      OtbnStartStopSecureWipeAccModBaseUrnd: begin
         urnd_advance_o        = 1'b1;
         addr_cnt_inc          = 1'b1;
         allow_secure_wipe     = 1'b1;
@@ -256,7 +267,7 @@ module otbn_start_stop_control
       end
       // Writing zeros to the CSRs and reset the stack. The other registers are intentionally not
       // overwritten with zero.
-       OtbnStartStopSecureWipeAllZero: begin
+      OtbnStartStopSecureWipeAllZero: begin
         sec_wipe_zero_o       = 1'b1;
         allow_secure_wipe     = 1'b1;
         expect_secure_wipe    = 1'b1;
@@ -276,12 +287,12 @@ module otbn_start_stop_control
           secure_wipe_ack_o = 1'b1;
         end
       end
-      OtbnStartStopSecureWipeComplete: begin
-        urnd_advance_o = 1'b1;
-        rma_ack_d = rma_req_i;
-        state_d = should_lock_d ? OtbnStartStopStateLocked : OtbnStartStopStateHalt;
-        wipe_after_urnd_refresh_d = MuBi4False;
-      end
+      // OtbnStartStopSecureWipeComplete: begin
+      //   urnd_advance_o = 1'b1;
+      //   rma_ack_d = rma_req_i;
+      //   state_d = should_lock_d ? OtbnStartStopStateLocked : OtbnStartStopStateHalt;
+      //   wipe_after_urnd_refresh_d = MuBi4False;
+      // end
       OtbnStartStopStateLocked: begin
         // SEC_CM: START_STOP_CTRL.FSM.GLOBAL_ESC
         // SEC_CM: START_STOP_CTRL.FSM.LOCAL_ESC
@@ -332,16 +343,18 @@ module otbn_start_stop_control
                                 init_sec_wipe_done_q; // keep
 
   // Logic separate from main FSM code to avoid false combinational loop warning from verilator
-  assign controller_start_o = (state_q == OtbnStartStopStateUrndRefresh) &
-                              mubi4_test_false_strict(wipe_after_urnd_refresh_q) &
-                              urnd_reseed_ack_i;
+  // assign controller_start_o = (state_q == OtbnStartStopStateUrndRefresh) & mubi4_test_false_strict(
+  //     wipe_after_urnd_refresh_q
+  // ) & urnd_reseed_ack_i;
+  assign controller_start_o = start_i;
 
   assign done_o = ((state_q == OtbnStartStopSecureWipeComplete && init_sec_wipe_done_q) ||
                    (stop && (state_q == OtbnStartStopStateUrndRefresh) &&
-                    mubi4_test_false_strict(wipe_after_urnd_refresh_q)) ||
-                   (spurious_urnd_ack_error && !(state_q inside {OtbnStartStopStateHalt,
-                                                                 OtbnStartStopStateLocked}) &&
-                    init_sec_wipe_done_q) || (mubi_err_d && !mubi_err_q));
+                    mubi4_test_false_strict(
+      wipe_after_urnd_refresh_q
+  )) || (spurious_urnd_ack_error &&
+         !(state_q inside {OtbnStartStopStateHalt, OtbnStartStopStateLocked}) &&
+         init_sec_wipe_done_q) || (mubi_err_d && !mubi_err_q));
 
   assign addr_cnt_d = addr_cnt_inc ? (addr_cnt_q + 6'd1) : 6'd0;
 
@@ -356,13 +369,13 @@ module otbn_start_stop_control
   end
 
   prim_mubi4_sender #(
-    .AsyncOn(1),
-    .ResetValue(MuBi4False)
+      .AsyncOn(1),
+      .ResetValue(MuBi4False)
   ) u_wipe_after_urnd_refresh_flop (
-    .clk_i,
-    .rst_ni,
-    .mubi_i(wipe_after_urnd_refresh_d),
-    .mubi_o(wipe_after_urnd_refresh_q)
+      .clk_i,
+      .rst_ni,
+      .mubi_i(wipe_after_urnd_refresh_d),
+      .mubi_o(wipe_after_urnd_refresh_q)
   );
 
   // Clip the secure wipe address to [0..31].  This is safe because the wipe enable signals are
@@ -376,7 +389,7 @@ module otbn_start_stop_control
   // Once we've started a secure wipe, the controller should not drop the request until we tell it
   // we're done. This does not apply for the *initial* secure wipe, though, which is controlled by
   // this module rather than the controller.
-  assign dropped_secure_wipe_req  = expect_secure_wipe & init_sec_wipe_done_d & ~secure_wipe_req_i;
+  assign dropped_secure_wipe_req = expect_secure_wipe & init_sec_wipe_done_d & ~secure_wipe_req_i;
 
   // Delay the "glitch req/ack" error signal by a cycle. Otherwise, you end up with a combinatorial
   // loop through the escalation signal that our fatal_error_o causes otbn_core to pass to the
@@ -404,18 +417,11 @@ module otbn_start_stop_control
 
   assign rma_ack_o = rma_ack_q;
 
-  `ASSERT(StartStopStateValid_A,
-      state_q inside {OtbnStartStopStateInitial,
-                      OtbnStartStopStateHalt,
-                      OtbnStartStopStateUrndRefresh,
-                      OtbnStartStopStateRunning,
-                      OtbnStartStopSecureWipeWdrUrnd,
-                      OtbnStartStopSecureWipeAccModBaseUrnd,
-                      OtbnStartStopSecureWipeAllZero,
-                      OtbnStartStopSecureWipeComplete,
-                      OtbnStartStopStateLocked})
+  `ASSERT(
+      StartStopStateValid_A,
+      state_q inside {OtbnStartStopStateInitial, OtbnStartStopStateHalt, OtbnStartStopStateUrndRefresh, OtbnStartStopStateRunning, OtbnStartStopSecureWipeWdrUrnd, OtbnStartStopSecureWipeAccModBaseUrnd, OtbnStartStopSecureWipeAllZero, OtbnStartStopSecureWipeComplete, OtbnStartStopStateLocked})
 
-  `ASSERT(StartSecureWipeImpliesRunning_A,
-          $rose(secure_wipe_req_i) |-> (state_q == OtbnStartStopStateRunning))
+  `ASSERT(StartSecureWipeImpliesRunning_A, $rose(secure_wipe_req_i)
+                                           |-> (state_q == OtbnStartStopStateRunning))
 
 endmodule
