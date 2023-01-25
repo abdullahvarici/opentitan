@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+`include "secure.v"
+
 module otbn_top_coco #(
   // Instruction data width
   parameter ImemDataWidth = 39
@@ -13,9 +15,9 @@ module otbn_top_coco #(
   input [ImemDataWidth-1:0] imem_wmask_i
 );
   // Size of the instruction memory, in bytes
-  localparam ImemSizeByte = 32'h1000;
+  localparam ImemSizeByte = 256;  //32'h1000;
   // Size of the data memory, in bytes
-  localparam DmemSizeByte = 32'h1000;
+  localparam DmemSizeByte = 128;  //32'h1000;
   // Data path width for BN (wide) instructions, in bits.
   localparam WLEN = 256;
   // Sideload key data width
@@ -151,8 +153,7 @@ module otbn_top_coco #(
     if (!rst_sys_n) begin
       init_sec_wipe_done_q <= 1'b0;
     end else begin
-      if (!secure_wipe_running)
-        init_sec_wipe_done_q <= 1'b1;
+      if (!secure_wipe_running) init_sec_wipe_done_q <= 1'b1;
     end
   end
 
@@ -183,6 +184,26 @@ module otbn_top_coco #(
 
   assign dmem_rerror = 1'b0;
 
+`ifdef DMEM_SECURE
+
+  ram_1p_secure #(
+    .DataWidth(ExtWLEN),
+    .AddrWidth(DmemIndexWidth),
+    .AddrWidthInBlock(1)
+  ) u_dmem (
+    .clk_i(clk_sys),
+    .rst_ni(rst_sys_n),
+    .req_i(dmem_req),
+    .we_i(dmem_write),
+    .addr_i(dmem_index),
+    .wdata_i(dmem_wdata),
+    .wmask_i(dmem_wmask),
+    .rvalid_o(dmem_rvalid),
+    .rdata_o(dmem_rdata)
+  );
+
+`else
+
   ram_1p #(
     .DataWidth(ExtWLEN),
     .AddrWidth(DmemIndexWidth),
@@ -198,6 +219,8 @@ module otbn_top_coco #(
     .rvalid_o(dmem_rvalid),
     .rdata_o(dmem_rdata)
   );
+
+`endif
 
   localparam ImemSizeWords = ImemSizeByte / 4;
   localparam ImemIndexWidth = vbits(ImemSizeWords);

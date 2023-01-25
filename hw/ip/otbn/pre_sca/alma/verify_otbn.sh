@@ -10,12 +10,14 @@ echo "Verifying OTBN using Alma"
 # Parse
 python3 parse.py --keep --top-module otbn_top_coco \
   --source ${REPO_TOP}/hw/ip/otbn/pre_sca/alma/rtl/ram_1p.v \
-  ${REPO_TOP}/hw/ip/otbn/pre_sca/alma/rtl/otbn_top_coco.v \
-  ${REPO_TOP}/hw/ip/otbn/pre_syn/syn_out/latest/generated/otbn_core.alma.v
+  ${REPO_TOP}/hw/ip/otbn/pre_sca/alma/rtl/ram_1p_secure.v \
+  ${REPO_TOP}/hw/ip/otbn/pre_sca/alma/rtl/secure.v \
+  ${REPO_TOP}/hw/ip/otbn/pre_syn/syn_out/latest/generated/otbn_core.alma.v \
+  ${REPO_TOP}/hw/ip/otbn/pre_sca/alma/rtl/otbn_top_coco.v
 
 # Assemble the program
 cd examples/otbn || exit
-python3 assemble.py --program programs/isw_and.S \
+python3 assemble.py --program programs/st_ok_tr_ok.S \
   --netlist ../../tmp/circuit.v
 cd ../../ || exit
 
@@ -26,7 +28,7 @@ python3 trace.py --testbench tmp/verilator_tb.c \
   --c-compiler gcc
 
 # Label
-sh update_labels.sh otbn examples/otbn/programs/isw_and_labels.txt
+sh update_labels.sh otbn examples/otbn/programs/st_ok_tr_ok_labels.txt
 
 # Verify
 python3 verify.py --json tmp/circuit.json \

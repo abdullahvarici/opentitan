@@ -69,7 +69,37 @@ the masking can finally be formally verified.
    ```
    This should produce output similar to the one below:
    ```sh
-   TODO
+   Verifying OTBN using Alma
+   Starting yosys synthesis...
+   | CircuitGraph | Total: 232545 | Linear: 22352 | Non-linear: 116337 | Registers: 18492 | Mux: 33665 | 
+   Writing CircuitGraph: 0.55
+   Writing SafeGraph: 0.61
+   parse.py successful (521.93s)
+   INSTR_LIMIT =  64
+   Using program file:  programs/st_ok_tr_ok.S
+   Using build directory: [build_directory]
+   Using netlist path: ../../tmp/circuit.v
+   Wrote verilator testbench to [build_directory]/verilator_tb.c
+   It produces output VCD at [build_directory]/circuit.vcd
+   1: Running verilator on given netlist
+   2: Compiling verilated netlist library
+   3: Compiling provided verilator testbench
+   4: Simulating circuit and generating VCD
+   u_dmem.mem[0]:0:67888: share 0
+   u_dmem.mem[1]:0:68825: share 0
+   WARNING Entry for name clk_sys already exists in namemap (clk_sys -> }F2)
+   WARNING Entry for name imem_wdata_i already exists in namemap (imem_wdata_i -> ~F2)
+   WARNING Entry for name imem_we_i already exists in namemap (imem_we_i -> \"G2)
+   WARNING Entry for name imem_wmask_i already exists in namemap (imem_wmask_i -> \#G2)
+   WARNING Entry for name rst_sys_n already exists in namemap (rst_sys_n -> %G2)
+   Building formula for cycle 0 vars 0 clauses 0
+   Building formula for cycle 1 vars 0 clauses 0
+   Building formula for cycle 2 vars 0 clauses 0
+   ...
+   Building formula for cycle 173 vars 0 clauses 0
+   Building formula for cycle 174 vars 0 clauses 0
+   Checking secret 0 [1, 2]: 
+   The execution is secure
    ```
 
 ## Individual steps in detail
@@ -90,15 +120,17 @@ For more details, please refer to the [Alma tutorial]
    ```sh
    python3 parse.py --keep --top-module otbn_top_coco \
       --source ${REPO_TOP}/hw/ip/otbn/pre_sca/alma/rtl/ram_1p.v \
-      ${REPO_TOP}/hw/ip/otbn/pre_sca/alma/rtl/otbn_top_coco.v \
-      ${REPO_TOP}/hw/ip/otbn/pre_syn/syn_out/latest/generated/otbn_core.alma.v
+      ${REPO_TOP}/hw/ip/otbn/pre_sca/alma/rtl/ram_1p_secure.v \
+      ${REPO_TOP}/hw/ip/otbn/pre_sca/alma/rtl/secure.v \
+      ${REPO_TOP}/hw/ip/otbn/pre_syn/syn_out/latest/generated/otbn_core.alma.v \
+      ${REPO_TOP}/hw/ip/otbn/pre_sca/alma/rtl/otbn_top_coco.v
    ```
 
 1. Next, run the `assemble.py` script to generate memory initialization file for
    OTBN.
    ```sh
    cd examples/otbn
-   python3 assemble.py --program programs/isw_and.S \
+   python3 assemble.py --program programs/st_ok_tr_ok.S \
       --netlist ../../tmp/circuit.v
    cd ../../
    ```
@@ -117,7 +149,7 @@ For more details, please refer to the [Alma tutorial]
    secret shares and which ones are used to provide randomness for
    (re-)masking. Use `update_labels.sh` script to update labels automatically.
    ```sh
-   sh update_labels.sh otbn examples/otbn/programs/isw_and_labels.txt
+   sh update_labels.sh otbn examples/otbn/programs/st_ok_tr_ok_labels.txt
    ```
 
 

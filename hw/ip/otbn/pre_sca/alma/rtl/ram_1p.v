@@ -7,8 +7,8 @@
 
 module ram_1p #(
   parameter DataWidth = 32,
-  parameter AddrWidth = 32,
-  parameter Depth = 128
+  parameter AddrWidth = 2,
+  parameter Depth = 4
 ) (
   input                      clk_i,
   input                      rst_ni,
@@ -21,7 +21,7 @@ module ram_1p #(
   output reg [DataWidth-1:0] rdata_o
 );
 
-  reg [DataWidth-1:0] mem[Depth];
+  reg [DataWidth-1:0] mem[Depth-1:0];
 
   always @(posedge clk_i) begin
     if (req_i) begin
