@@ -2201,7 +2201,7 @@ boolean_to_arithmetic:
        [w2, w1] <= gamma */
   bn.wsrr   w1, 2
   bn.wsrr   w2, 2
-  bn.rshi   w2, w31, w2 >> 191
+  bn.rshi   w2, w31, w2 >> 192
 
   /* [w4, w3] <= [w21, w20] ^ [w2, w1] = s0 ^ gamma */
   bn.xor    w3, w20, w1
@@ -2215,8 +2215,8 @@ boolean_to_arithmetic:
 
   /* Truncate subtraction result to 321 bits.
        [w4, w3] <= [w4, w3] mod 2^321 = T */
-  bn.rshi   w4, w4, w31 >> 65
-  bn.rshi   w4, w31, w4 >> 191
+  bn.rshi   w4, w4, w31 >> 64
+  bn.rshi   w4, w31, w4 >> 192
 
   /* [w4, w3] <= [w4, w3] ^ [w21, w20] = T2 */
   bn.xor    w3, w3, w20
@@ -2235,8 +2235,8 @@ boolean_to_arithmetic:
   bn.subb   w21, w21, w2
 
   /* [w21, w20] <= [w21, w20] mod 2^321 = A */
-  bn.rshi   w21, w21, w31 >> 65
-  bn.rshi   w21, w31, w21 >> 191
+  bn.rshi   w21, w21, w31 >> 64
+  bn.rshi   w21, w31, w21 >> 192
 
   /* [w21, w20] <= [w21, w20] ^ [w4, w3] = A ^ T2 = x0 */
   bn.xor    w20, w20, w3
