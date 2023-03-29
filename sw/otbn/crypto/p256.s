@@ -2189,20 +2189,21 @@ p256_generate_k:
  * clobbered flag groups: FG0
  */
 boolean_to_arithmetic:
+  # get a number with msb 192-bit is zero and rest of them are one
+  bn.xor  w30, w30, w30
+  bn.subi w30, w30, 1
+  bn.rshi w30, w31, w30 >> 192
+
   /* Mask out excess bits from seed shares.
        [w21, w20] <= s0 mod 2^320
        [w23, w22] <= s1 mod 2^320 = x1 */
-  bn.wsrr   w30, 2 # get random number from URND
-  bn.wsrr   w29, 2 # get random number from URND
-  bn.rshi   w30, w29, w30 >> 32 # dummy
-  bn.rshi   w21, w21, w31 >> 64
-  bn.rshi   w29, w30, w29 >> 32 # dummy
-  bn.rshi   w21, w31, w21 >> 192
-  bn.rshi   w30, w29, w30 >> 32 # dummy
-  bn.rshi   w23, w23, w31 >> 64
-  bn.rshi   w29, w30, w29 >> 32 # dummy
-  bn.rshi   w23, w31, w23 >> 192
-  bn.rshi   w30, w29, w30 >> 32 # dummy
+#  bn.rshi   w21, w21, w31 >> 64
+#  bn.rshi   w21, w31, w21 >> 192
+#  bn.rshi   w23, w23, w31 >> 64
+#  bn.rshi   w23, w31, w23 >> 192
+  bn.and    w21, w30, w21
+  bn.and    w31, w31, w31 # dummy
+  bn.and    w23, w30, w23
 
 #  /* Fetch 321 bits of randomness from URND.
 #       [w2, w1] <= gamma */
