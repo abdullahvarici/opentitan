@@ -51,18 +51,18 @@ run_gen_secret_key:
   /* Init all-zero register. */
   bn.xor    w31, w31, w31
 
-  /* Load shares of seed from DMEM.
-       [w21,w20] <= dmem[seed0]
-       [w23,w33] <= dmem[seed1] */
-  li        x2, 20
-  la        x3, seed0
-  bn.lid    x2, 0(x3++)
-  li        x2, 21
-  bn.lid    x2++, 0(x3)
-  la        x3, seed1
-  bn.lid    x2, 0(x3++)
-  li        x2, 23
-  bn.lid    x2, 0(x3)
+#  /* Load shares of seed from DMEM.
+#       [w21,w20] <= dmem[seed0]
+#       [w23,w33] <= dmem[seed1] */
+#  li        x2, 20
+#  la        x3, seed0
+#  bn.lid    x2, 0(x3++)
+#  li        x2, 21
+#  bn.lid    x2++, 0(x3)
+#  la        x3, seed1
+#  bn.lid    x2, 0(x3++)
+#  li        x2, 23
+#  bn.lid    x2, 0(x3)
 
   /* Generate the derived secret key.
        [w21,w20] <= d0
