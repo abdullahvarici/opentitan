@@ -2197,50 +2197,50 @@ boolean_to_arithmetic:
   bn.rshi   w23, w23, w31 >> 64
   bn.rshi   w23, w31, w23 >> 192
 
-  /* Fetch 321 bits of randomness from URND.
-       [w2, w1] <= gamma */
-  bn.wsrr   w1, 2
-  bn.wsrr   w2, 2
-  bn.rshi   w2, w31, w2 >> 192
-
-  /* [w4, w3] <= [w21, w20] ^ [w2, w1] = s0 ^ gamma */
-  bn.xor    w3, w20, w1
-  bn.xor    w4, w21, w2
-
-  /* Subtract gamma. This may result in bits above 2^321, but these will be
-     stripped off in the next step.
-       [w4, w3] <= [w4, w3] - [w2, w1] = ((s0 ^ gamma) - gamma) mod 2^512 */
-  bn.sub    w3, w3, w1
-  bn.subb   w4, w4, w2
-
-  /* Truncate subtraction result to 321 bits.
-       [w4, w3] <= [w4, w3] mod 2^321 = T */
-  bn.rshi   w4, w4, w31 >> 64
-  bn.rshi   w4, w31, w4 >> 192
-
-  /* [w4, w3] <= [w4, w3] ^ [w21, w20] = T2 */
-  bn.xor    w3, w3, w20
-  bn.xor    w4, w4, w21
-
-  /* [w2, w1] <= [w2, w1] ^ [w23, w22] = gamma ^ s1 = G */
-  bn.xor    w1, w1, w22
-  bn.xor    w2, w2, w23
-
-  /* [w21, w20] <= [w21, w20] ^ [w2, w1] = s0 ^ G */
-  bn.xor    w20, w20, w1
-  bn.xor    w21, w21, w2
-
-  /* [w21, w20] <= [w21, w20] - [w2, w1] = ((s0 ^ G) - G) mod 2^512 */
-  bn.sub    w20, w20, w1
-  bn.subb   w21, w21, w2
-
-  /* [w21, w20] <= [w21, w20] mod 2^321 = A */
-  bn.rshi   w21, w21, w31 >> 64
-  bn.rshi   w21, w31, w21 >> 192
-
-  /* [w21, w20] <= [w21, w20] ^ [w4, w3] = A ^ T2 = x0 */
-  bn.xor    w20, w20, w3
-  bn.xor    w21, w21, w4
+#  /* Fetch 321 bits of randomness from URND.
+#       [w2, w1] <= gamma */
+#  bn.wsrr   w1, 2
+#  bn.wsrr   w2, 2
+#  bn.rshi   w2, w31, w2 >> 192
+#
+#  /* [w4, w3] <= [w21, w20] ^ [w2, w1] = s0 ^ gamma */
+#  bn.xor    w3, w20, w1
+#  bn.xor    w4, w21, w2
+#
+#  /* Subtract gamma. This may result in bits above 2^321, but these will be
+#     stripped off in the next step.
+#       [w4, w3] <= [w4, w3] - [w2, w1] = ((s0 ^ gamma) - gamma) mod 2^512 */
+#  bn.sub    w3, w3, w1
+#  bn.subb   w4, w4, w2
+#
+#  /* Truncate subtraction result to 321 bits.
+#       [w4, w3] <= [w4, w3] mod 2^321 = T */
+#  bn.rshi   w4, w4, w31 >> 64
+#  bn.rshi   w4, w31, w4 >> 192
+#
+#  /* [w4, w3] <= [w4, w3] ^ [w21, w20] = T2 */
+#  bn.xor    w3, w3, w20
+#  bn.xor    w4, w4, w21
+#
+#  /* [w2, w1] <= [w2, w1] ^ [w23, w22] = gamma ^ s1 = G */
+#  bn.xor    w1, w1, w22
+#  bn.xor    w2, w2, w23
+#
+#  /* [w21, w20] <= [w21, w20] ^ [w2, w1] = s0 ^ G */
+#  bn.xor    w20, w20, w1
+#  bn.xor    w21, w21, w2
+#
+#  /* [w21, w20] <= [w21, w20] - [w2, w1] = ((s0 ^ G) - G) mod 2^512 */
+#  bn.sub    w20, w20, w1
+#  bn.subb   w21, w21, w2
+#
+#  /* [w21, w20] <= [w21, w20] mod 2^321 = A */
+#  bn.rshi   w21, w21, w31 >> 64
+#  bn.rshi   w21, w31, w21 >> 192
+#
+#  /* [w21, w20] <= [w21, w20] ^ [w4, w3] = A ^ T2 = x0 */
+#  bn.xor    w20, w20, w3
+#  bn.xor    w21, w21, w4
 
   ret
 
