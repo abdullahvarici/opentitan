@@ -13,6 +13,26 @@
 .section .text.start
 
 start:
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
+  NOP
   /* Read mode, then tail-call either p256_gen_secret_key or p256_gen_keypair */
   la    x2, mode
   lw    x2, 0(x2)
