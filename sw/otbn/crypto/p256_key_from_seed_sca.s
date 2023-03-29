@@ -67,7 +67,7 @@ run_gen_secret_key:
   /* Generate the derived secret key.
        [w21,w20] <= d0
        [w23,w33] <= d1 */
-  jal       x1, p256_key_from_seed
+#  jal       x1, p256_key_from_seed
 
 #  /* Write the results to DMEM.
 #       dmem[d0] <= [w21, w20]
