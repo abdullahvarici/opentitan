@@ -2201,9 +2201,9 @@ boolean_to_arithmetic:
 #  bn.rshi   w21, w31, w21 >> 192
 #  bn.rshi   w23, w23, w31 >> 64
 #  bn.rshi   w23, w31, w23 >> 192
-  bn.and    w21, w30, w21
+  bn.and    w24, w30, w21
   bn.and    w31, w31, w31 # dummy
-  bn.and    w23, w30, w23
+  bn.and    w25, w30, w23
 
 #  /* Fetch 321 bits of randomness from URND.
 #       [w2, w1] <= gamma */
