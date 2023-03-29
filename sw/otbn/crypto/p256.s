@@ -2196,9 +2196,18 @@ boolean_to_arithmetic:
   bn.wsrr   w29, 2 # get random number from URND
   bn.rshi   w30, w29, w30 >> 128 # dummy
   bn.rshi   w21, w21, w31 >> 64
-#  bn.rshi   w21, w31, w21 >> 192
-#  bn.rshi   w23, w23, w31 >> 64
-#  bn.rshi   w23, w31, w23 >> 192
+  bn.wsrr   w30, 2 # get random number from URND
+  bn.wsrr   w29, 2 # get random number from URND
+  bn.rshi   w30, w29, w30 >> 128 # dummy
+  bn.rshi   w21, w31, w21 >> 192
+  bn.wsrr   w30, 2 # get random number from URND
+  bn.wsrr   w29, 2 # get random number from URND
+  bn.rshi   w30, w29, w30 >> 128 # dummy
+  bn.rshi   w23, w23, w31 >> 64
+  bn.wsrr   w30, 2 # get random number from URND
+  bn.wsrr   w29, 2 # get random number from URND
+  bn.rshi   w30, w29, w30 >> 128 # dummy
+  bn.rshi   w23, w31, w23 >> 192
 
 #  /* Fetch 321 bits of randomness from URND.
 #       [w2, w1] <= gamma */
