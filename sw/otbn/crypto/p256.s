@@ -2193,7 +2193,7 @@ boolean_to_arithmetic:
        [w21, w20] <= s0 mod 2^320
        [w23, w22] <= s1 mod 2^320 = x1 */
   bn.rshi   w21, w21, w31 >> 64
-#  bn.rshi   w21, w31, w21 >> 192
+  bn.rshi   w21, w31, w21 >> 192
 #  bn.rshi   w23, w23, w31 >> 64
 #  bn.rshi   w23, w31, w23 >> 192
 
