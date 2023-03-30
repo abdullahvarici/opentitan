@@ -239,8 +239,6 @@ static void ecc256_ecdsa_secret_keygen_batch(const uint8_t *data,
 
   for (uint32_t i = 0; i < num_traces; ++i) {
 
-    for(volatile int ii = 0; ii < 500; ii++);
-
     p256_run_keygen(kEcc256ModePrivateKeyOnly, batch_seeds[i], batch_masks[i]);
 
     // Read results.
