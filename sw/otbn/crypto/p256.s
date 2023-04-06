@@ -2204,43 +2204,43 @@ boolean_to_arithmetic:
   bn.rshi   w2, w31, w2 >> 192
 
   /* [w4, w3] <= [w21, w20] ^ [w2, w1] = s0 ^ gamma */
-#  bn.xor    w3, w20, w1
-#  bn.xor    w4, w21, w2
-#
-#  /* Subtract gamma. This may result in bits above 2^321, but these will be
-#     stripped off in the next step.
-#       [w4, w3] <= [w4, w3] - [w2, w1] = ((s0 ^ gamma) - gamma) mod 2^512 */
-#  bn.sub    w3, w3, w1
-#  bn.subb   w4, w4, w2
-#
-#  /* Truncate subtraction result to 321 bits.
-#       [w4, w3] <= [w4, w3] mod 2^321 = T */
-#  bn.rshi   w4, w4, w31 >> 64
-#  bn.rshi   w4, w31, w4 >> 192
-#
-#  /* [w4, w3] <= [w4, w3] ^ [w21, w20] = T2 */
-#  bn.xor    w3, w3, w20
-#  bn.xor    w4, w4, w21
-#
-#  /* [w2, w1] <= [w2, w1] ^ [w23, w22] = gamma ^ s1 = G */
-#  bn.xor    w1, w1, w22
-#  bn.xor    w2, w2, w23
-#
-#  /* [w21, w20] <= [w21, w20] ^ [w2, w1] = s0 ^ G */
-#  bn.xor    w20, w20, w1
-#  bn.xor    w21, w21, w2
-#
-#  /* [w21, w20] <= [w21, w20] - [w2, w1] = ((s0 ^ G) - G) mod 2^512 */
-#  bn.sub    w20, w20, w1
-#  bn.subb   w21, w21, w2
-#
-#  /* [w21, w20] <= [w21, w20] mod 2^321 = A */
-#  bn.rshi   w21, w21, w31 >> 64
-#  bn.rshi   w21, w31, w21 >> 192
-#
-#  /* [w21, w20] <= [w21, w20] ^ [w4, w3] = A ^ T2 = x0 */
-#  bn.xor    w20, w20, w3
-#  bn.xor    w21, w21, w4
+  bn.xor    w3, w20, w1
+  bn.xor    w4, w21, w2
+
+  /* Subtract gamma. This may result in bits above 2^321, but these will be
+     stripped off in the next step.
+       [w4, w3] <= [w4, w3] - [w2, w1] = ((s0 ^ gamma) - gamma) mod 2^512 */
+  bn.sub    w3, w3, w1
+  bn.subb   w4, w4, w2
+
+  /* Truncate subtraction result to 321 bits.
+       [w4, w3] <= [w4, w3] mod 2^321 = T */
+  bn.rshi   w4, w4, w31 >> 64
+  bn.rshi   w4, w31, w4 >> 192
+
+  /* [w4, w3] <= [w4, w3] ^ [w21, w20] = T2 */
+  bn.xor    w3, w3, w20
+  bn.xor    w4, w4, w21
+
+  /* [w2, w1] <= [w2, w1] ^ [w23, w22] = gamma ^ s1 = G */
+  bn.xor    w1, w1, w22
+  bn.xor    w2, w2, w23
+
+  /* [w21, w20] <= [w21, w20] ^ [w2, w1] = s0 ^ G */
+  bn.xor    w20, w20, w1
+  bn.xor    w21, w21, w2
+
+  /* [w21, w20] <= [w21, w20] - [w2, w1] = ((s0 ^ G) - G) mod 2^512 */
+  bn.sub    w20, w20, w1
+  bn.subb   w21, w21, w2
+
+  /* [w21, w20] <= [w21, w20] mod 2^321 = A */
+  bn.rshi   w21, w21, w31 >> 64
+  bn.rshi   w21, w31, w21 >> 192
+
+  /* [w21, w20] <= [w21, w20] ^ [w4, w3] = A ^ T2 = x0 */
+  bn.xor    w20, w20, w3
+  bn.xor    w21, w21, w4
 
   ret
 
@@ -2293,90 +2293,90 @@ p256_key_from_seed:
        [w21, w20] <= ((seed0 ^ seed1) - seed1) mod 2^321 = x0 */
   jal       x1, boolean_to_arithmetic
 
-#  /* At this point, we have arithmetic shares modulo 2^321:
-#       [w21, w20] : x0
-#       [w23, w22] : x1
-#
-#     We know that x1=seed1, and seed and x1 are at most 320 bits. Therefore,
-#     the highest bit of x0 holds a carry bit modulo 2^320:
-#       x0 = (seed - x1) mod 2^321
-#       x0 = (seed - x1) mod 2^320 + (if (x1 <= seed) then 0 else 2^320)
-#
-#     The carry bit then allows us to replace (mod 2^321) with a conditional
-#     statement:
-#       seed = (x0 mod 2^320) + x1 - (x0[320] << 320)
-#
-#     Note that the carry bit is not very sensitive from a side channel
-#     perspective; x1 <= seed has some bias related to the highest bit of the
-#     seed, but since the seed is 64 bits larger than n, this single-bit noisy
-#     leakage should not be significant.
-#
-#     From here, we want to convert to shares modulo (n * 2^64) -- these shares
-#     will be equivalent to the seed modulo n but still retain 64 bits of extra
-#     masking. We compute the new shares as follows:
-#       c = (x0[320] << 320) mod (n << 64)
-#       d0 = ((x0 mod 2^320) - c) mod (n << 64))
-#       d1 = x1 mod (n << 64)
-#
-#       d = seed mod n = (d0 + d1) mod n
-#  */
-#
-#  /* Load curve order n from DMEM.
-#       w29 <= dmem[p256_n] = n */
-#  li        x2, 29
-#  la        x3, p256_n
-#  bn.lid    x2, 0(x3)
-#
-#  /* Compute (n << 64).
-#       [w29,w28] <= w29 << 64 = n << 64 */
-#  bn.rshi   w28, w29, w31 >> 192
-#  bn.rshi   w29, w31, w29 >> 192
-#
-#  /* [w25,w24] <= (x1 - (n << 64)) mod 2^512 */
-#  bn.sub    w24, w22, w28
-#  bn.subb   w25, w23, w29
-#
-#  /* Compute d1. Because 2^320 < 2 * (n << 64), a conditional subtraction is
-#     sufficient to reduce. Similarly to the carry bit, the conditional bit here
-#     is not very sensitive because the shares are large relative to n.
-#       [w23,w22] <= x1 mod (n << 64) = d1 */
-#  bn.sel    w22, w22, w24, FG0.C
-#  bn.sel    w23, w23, w25, FG0.C
-#
-#  /* Isolate the carry bit and shift it back into position.
-#       w25 <= x0[320] << 64 */
-#  bn.rshi   w25, w31, w21 >> 64
-#  bn.rshi   w25, w25, w31 >> 192
-#
-#  /* Clear the carry bit from the original result.
-#       [w21,w20] <= x0 mod 2^320 */
-#  bn.xor    w21, w21, w25
-#
-#  /* Conditionally subtract (n << 64) to reduce.
-#       [w21,w20] <= (x0 mod 2^320) mod (n << 64) */
-#  bn.sub    w26, w20, w28
-#  bn.subb   w27, w21, w29
-#  bn.sel    w20, w20, w26, FG0.C
-#  bn.sel    w21, w21, w27, FG0.C
-#
-#  /* Compute the correction factor.
-#       [w25,w24] <= (x[320] << 320) mod (n << 64) = c */
-#  bn.sub    w26, w31, w28
-#  bn.subb   w27, w25, w29
-#  bn.sel    w24, w31, w26, FG0.C
-#  bn.sel    w25, w25, w27, FG0.C
-#
-#  /* Compute d0 with a modular subtraction. First we add (n << 64) to protect
-#     against underflow, then conditionally subtract it again if needed.
-#       [w21,w20] <= ([w21, w20] - [w25,w24]) mod (n << 64) = d1 */
-#  bn.add    w20, w20, w28
-#  bn.addc   w21, w21, w29
-#  bn.sub    w20, w20, w24
-#  bn.subb   w21, w21, w25
-#  bn.sub    w26, w20, w28
-#  bn.subb   w27, w21, w29
-#  bn.sel    w20, w20, w26, FG0.C
-#  bn.sel    w21, w21, w27, FG0.C
+  /* At this point, we have arithmetic shares modulo 2^321:
+       [w21, w20] : x0
+       [w23, w22] : x1
+
+     We know that x1=seed1, and seed and x1 are at most 320 bits. Therefore,
+     the highest bit of x0 holds a carry bit modulo 2^320:
+       x0 = (seed - x1) mod 2^321
+       x0 = (seed - x1) mod 2^320 + (if (x1 <= seed) then 0 else 2^320)
+
+     The carry bit then allows us to replace (mod 2^321) with a conditional
+     statement:
+       seed = (x0 mod 2^320) + x1 - (x0[320] << 320)
+
+     Note that the carry bit is not very sensitive from a side channel
+     perspective; x1 <= seed has some bias related to the highest bit of the
+     seed, but since the seed is 64 bits larger than n, this single-bit noisy
+     leakage should not be significant.
+
+     From here, we want to convert to shares modulo (n * 2^64) -- these shares
+     will be equivalent to the seed modulo n but still retain 64 bits of extra
+     masking. We compute the new shares as follows:
+       c = (x0[320] << 320) mod (n << 64)
+       d0 = ((x0 mod 2^320) - c) mod (n << 64))
+       d1 = x1 mod (n << 64)
+
+       d = seed mod n = (d0 + d1) mod n
+  */
+
+  /* Load curve order n from DMEM.
+       w29 <= dmem[p256_n] = n */
+  li        x2, 29
+  la        x3, p256_n
+  bn.lid    x2, 0(x3)
+
+  /* Compute (n << 64).
+       [w29,w28] <= w29 << 64 = n << 64 */
+  bn.rshi   w28, w29, w31 >> 192
+  bn.rshi   w29, w31, w29 >> 192
+
+  /* [w25,w24] <= (x1 - (n << 64)) mod 2^512 */
+  bn.sub    w24, w22, w28
+  bn.subb   w25, w23, w29
+
+  /* Compute d1. Because 2^320 < 2 * (n << 64), a conditional subtraction is
+     sufficient to reduce. Similarly to the carry bit, the conditional bit here
+     is not very sensitive because the shares are large relative to n.
+       [w23,w22] <= x1 mod (n << 64) = d1 */
+  bn.sel    w22, w22, w24, FG0.C
+  bn.sel    w23, w23, w25, FG0.C
+
+  /* Isolate the carry bit and shift it back into position.
+       w25 <= x0[320] << 64 */
+  bn.rshi   w25, w31, w21 >> 64
+  bn.rshi   w25, w25, w31 >> 192
+
+  /* Clear the carry bit from the original result.
+       [w21,w20] <= x0 mod 2^320 */
+  bn.xor    w21, w21, w25
+
+  /* Conditionally subtract (n << 64) to reduce.
+       [w21,w20] <= (x0 mod 2^320) mod (n << 64) */
+  bn.sub    w26, w20, w28
+  bn.subb   w27, w21, w29
+  bn.sel    w20, w20, w26, FG0.C
+  bn.sel    w21, w21, w27, FG0.C
+
+  /* Compute the correction factor.
+       [w25,w24] <= (x[320] << 320) mod (n << 64) = c */
+  bn.sub    w26, w31, w28
+  bn.subb   w27, w25, w29
+  bn.sel    w24, w31, w26, FG0.C
+  bn.sel    w25, w25, w27, FG0.C
+
+  /* Compute d0 with a modular subtraction. First we add (n << 64) to protect
+     against underflow, then conditionally subtract it again if needed.
+       [w21,w20] <= ([w21, w20] - [w25,w24]) mod (n << 64) = d1 */
+  bn.add    w20, w20, w28
+  bn.addc   w21, w21, w29
+  bn.sub    w20, w20, w24
+  bn.subb   w21, w21, w25
+  bn.sub    w26, w20, w28
+  bn.subb   w27, w21, w29
+  bn.sel    w20, w20, w26, FG0.C
+  bn.sel    w21, w21, w27, FG0.C
 
   ret
 
