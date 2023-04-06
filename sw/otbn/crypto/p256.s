@@ -2204,7 +2204,7 @@ boolean_to_arithmetic:
   bn.rshi   w2, w31, w2 >> 192
 
   /* [w4, w3] <= [w21, w20] ^ [w2, w1] = s0 ^ gamma */
-  bn.xor    w3, w20, w1
+#  bn.xor    w3, w20, w1
 #  bn.xor    w4, w21, w2
 #
 #  /* Subtract gamma. This may result in bits above 2^321, but these will be
