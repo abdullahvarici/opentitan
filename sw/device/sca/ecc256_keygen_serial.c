@@ -197,8 +197,8 @@ static void p256_run_keygen(uint32_t mode, const uint32_t *share0,
   // Write seed shares.
   SS_CHECK_STATUS_OK(
       otbn_dmem_write(kEcc256SeedNumWords, share0, kOtbnVarSeed0));
-  SS_CHECK_STATUS_OK(
-      otbn_dmem_write(kEcc256SeedNumWords, share1, kOtbnVarSeed1));
+//  SS_CHECK_STATUS_OK(
+//      otbn_dmem_write(kEcc256SeedNumWords, share1, kOtbnVarSeed1));
 
   // Execute program.
   sca_set_trigger_high();
