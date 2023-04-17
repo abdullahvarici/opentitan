@@ -64,18 +64,23 @@ run_gen_secret_key:
   li        x2, 23
   bn.lid    x2, 0(x3)
 
-  # overwrite shares in DMEM with random values
-  li        x2, 1
-  la        x3, seed0
-  bn.wsrr   w1, 2
-  bn.sid    x2, 0(x3++)
-  bn.wsrr   w1, 2
-  bn.sid    x2, 0(x3)
-  la        x3, seed1
-  bn.wsrr   w1, 2
-  bn.sid    x2, 0(x3++)
-  bn.wsrr   w1, 2
-  bn.sid    x2, 0(x3)
+#  # overwrite shares in DMEM with random values
+#  li        x2, 1
+#  la        x3, seed0
+#  bn.wsrr   w1, 2
+#  bn.sid    x2, 0(x3++)
+#  bn.wsrr   w1, 2
+#  bn.sid    x2, 0(x3)
+#  la        x3, seed1
+#  bn.wsrr   w1, 2
+#  bn.sid    x2, 0(x3++)
+#  bn.wsrr   w1, 2
+#  bn.sid    x2, 0(x3)
+#
+#  # read from a different address of the DMEM
+#  li        x2, 30
+#  la        x3, d0
+#  bn.lid    x2, 0(x3)
 
   /* Generate the derived secret key.
        [w21,w20] <= d0

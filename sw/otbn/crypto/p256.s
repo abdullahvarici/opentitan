@@ -2192,6 +2192,8 @@ boolean_to_arithmetic:
   /* Mask out excess bits from seed shares.
        [w21, w20] <= s0 mod 2^320
        [w23, w22] <= s1 mod 2^320 = x1 */
+#  bn.wsrr   w30, 2 # dummy, get random number from URND
+#  bn.rshi   w31, w31, w31 >> 32 # dummy
   bn.rshi   w21, w21, w31 >> 64
   bn.rshi   w21, w31, w21 >> 192
   bn.rshi   w23, w23, w31 >> 64
