@@ -2381,8 +2381,9 @@ p256_key_from_seed:
   bn.subb   w21, w21, w25
   bn.sub    w26, w20, w28
   bn.subb   w27, w21, w29
-  bn.sel    w20, w20, w26, FG0.C
-  bn.sel    w21, w21, w27, FG0.C
+  bn.mov    w22, w21
+  bn.sel    w21, w20, w26, FG0.C
+  bn.sel    w20, w22, w27, FG0.C
 
   ret
 

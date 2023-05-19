@@ -73,11 +73,22 @@ run_gen_secret_key:
   /* Write the results to DMEM.
        dmem[d0] <= [w21, w20]
        dmem[d1] <= [w11, w10] */
-  li        x2, 20
+  li        x2, 21
   la        x3, d0
   bn.sid    x2, 0(x3++)
-  li        x2, 21
+  li        x2, 20
   bn.sid    x2++, 0(x3)
+
+  # /* dummy instructions
+  # dmem[d2] <= [w23, w22] */
+  # bn.wsrr   w22, 2
+  # bn.wsrr   w23, 2
+  # li        x2, 22
+  # la        x3, d2
+  # bn.sid    x2, 0(x3++)
+  # li        x2, 23
+  # bn.sid    x2++, 0(x3)
+
   li        x2, 10
   la        x3, d1
   bn.sid    x2, 0(x3++)
@@ -163,3 +174,9 @@ x:
 .globl y
 y:
 .zero 32
+
+# /* Temp share of output key (320 bits). */
+# .balign 32
+# .globl d2
+# d2:
+# .zero 64

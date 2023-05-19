@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "sw/device/lib/base/abs_mmio.h"
+#include "sw/device/lib/base/hardened.h"
 #include "sw/device/lib/base/memory.h"
 #include "sw/device/lib/crypto/drivers/otbn.h"
 #include "sw/device/lib/runtime/ibex.h"
@@ -193,6 +194,8 @@ static void otbn_manual_trigger(void) { SS_CHECK_STATUS_OK(otbn_execute()); }
  */
 static void p256_run_keygen(uint32_t mode, const uint32_t *share0,
                             const uint32_t *share1) {
+  SS_CHECK_STATUS_OK(otbn_load_app(kOtbnAppP256KeyFromSeed));
+
   // Write mode.
   SS_CHECK_STATUS_OK(otbn_dmem_write(/*num_words=*/1, &mode, kOtbnVarMode));
 
